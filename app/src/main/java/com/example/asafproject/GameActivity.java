@@ -126,7 +126,9 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
 
                     // fallback אם Gemini טעה (עמודה מלאה וכו')
                     if (aiPlaced == null) {
-                        aiPlaced = gameMoudle.aiMoveHardLocal();
+                        playGeminiWithToastAndDelay();
+                        return;
+
                     }
 
                     if (aiPlaced != null) {
