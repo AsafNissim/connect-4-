@@ -97,11 +97,10 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
     private void playEasyWithSmallDelay() {
         if (gameMoudle.isGameOver()) return;
 
-        // (לא חובה) תוכל להשאיר בלי טוסט, אבל זה יותר "חי"
         Toast.makeText(this, "מחשב חושב...", Toast.LENGTH_SHORT).show();
 
         handler.postDelayed(() -> {
-            Position aiPlaced = gameMoudle.aiMoveRandom(); // מפיל בתוך המודל
+            Position aiPlaced = gameMoudle.aiMoveRandom();
             if (aiPlaced != null) {
                 boardGame.invalidate();
                 afterAiMove(aiPlaced);
@@ -113,37 +112,36 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
     private void playGeminiWithToastAndDelay() {
         if (gameMoudle.isGameOver()) return;
 
-        // ✅ כמו פעם: טוסט חשיבה
         Toast.makeText(this, "Gemini חושב...", Toast.LENGTH_SHORT).show();
 
         geminiModule.requestHardMove(this, new GeminiModule.MoveCallback() {
             @Override
             public void onMove(int col) {
-                // ✅ כמו שהוספנו: מחכה 3 שניות ואז עושה מהלך
                 handler.postDelayed(() -> {
 
                     Position aiPlaced = gameMoudle.dropDisk(col);
 
-                    // fallback אם Gemini טעה (עמודה מלאה וכו')
+                    // ✅ תיקון מינימלי: אם Gemini נתן עמודה לא חוקית/מלאה -> fallback ללוקאל
                     if (aiPlaced == null) {
-                        playGeminiWithToastAndDelay();
+                        Position fallback = gameMoudle.aiMoveHardLocal();
+                        if (fallback != null) {
+                            boardGame.invalidate();
+                            afterAiMove(fallback);
+                        }
                         return;
-
                     }
 
-                    if (aiPlaced != null) {
-                        boardGame.invalidate();
-                        afterAiMove(aiPlaced);
-                    }
+                    boardGame.invalidate();
+                    afterAiMove(aiPlaced);
 
                 }, 3000);
             }
 
             @Override
             public void onError(String msg) {
-                // גם בשגיאה מחכים 3 שניות ואז fallback
                 handler.postDelayed(() -> {
 
+                    // ✅ תיקון: להגדיר משתנה מקומי
                     Position aiPlaced = gameMoudle.aiMoveHardLocal();
                     if (aiPlaced != null) {
                         boardGame.invalidate();
@@ -173,4 +171,3 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
         tvTurn.setText(gameMoudle.getCurrentPlayer() == Disk.Color.RED ? "תור: אדום" : "תור: צהוב");
     }
 }
-
