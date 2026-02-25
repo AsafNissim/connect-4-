@@ -42,6 +42,7 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
         tvTurn.setText("תור: אדום");
 
         btnRestart.setOnClickListener(v -> {
+
             gameMoudle.reset();
             gameMoudle.setGameOver(false);
             boardGame.invalidate();
@@ -51,19 +52,17 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
         btnBack.setOnClickListener(v -> finish());
     }
 
-    // Gemini קורא מפה את מצב הלוח
     @Override
     public String boardToGeminiText() {
         return gameMoudle.boardToGeminiText();
     }
 
     /**
-     * נקרא מ-BoardGame אחרי מהלך שחקן (אחרי dropDisk).
+     * נקרא מ-BoardGame אחרי מהלך שחקן (בסוף האנימציה).
      */
     public void onDiskPlaced(Position placed) {
         if (placed == null) return;
 
-        // ✅ בדיקת ניצחון אחרי מהלך שחקן
         int win = gameMoudle.isWin(placed);
         if (win == GameMoudle.redWin) {
             Toast.makeText(this, "🔴 אדום ניצח!", Toast.LENGTH_LONG).show();
@@ -76,16 +75,11 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
             return;
         }
 
-        // ✅ תור (אחרי dropDisk התור כבר התחלף)
         tvTurn.setText(gameMoudle.getCurrentPlayer() == Disk.Color.RED ? "תור: אדום" : "תור: צהוב");
 
-        // ✅ אם זה שני שחקנים על אותו מכשיר
         if (mode == MainActivity.MODE_TWO_PLAYERS) return;
-
-        // ✅ אם זה נגד מחשב: המחשב תמיד צהוב
         if (gameMoudle.getCurrentPlayer() != Disk.Color.YELLOW) return;
 
-        // ✅ מחשב קל / קשה
         if (mode == MainActivity.MODE_EASY) {
             playEasyWithSmallDelay();
         } else if (mode == MainActivity.MODE_HARD) {
@@ -102,8 +96,7 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
         handler.postDelayed(() -> {
             Position aiPlaced = gameMoudle.aiMoveRandom();
             if (aiPlaced != null) {
-                boardGame.invalidate();
-                afterAiMove(aiPlaced);
+                boardGame.animateDrop(aiPlaced, () -> afterAiMove(aiPlaced));
             }
         }, 800);
     }
@@ -121,18 +114,15 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
 
                     Position aiPlaced = gameMoudle.dropDisk(col);
 
-                    // ✅ תיקון מינימלי: אם Gemini נתן עמודה לא חוקית/מלאה -> fallback ללוקאל
                     if (aiPlaced == null) {
                         Position fallback = gameMoudle.aiMoveHardLocal();
                         if (fallback != null) {
-                            boardGame.invalidate();
-                            afterAiMove(fallback);
+                            boardGame.animateDrop(fallback, () -> afterAiMove(fallback));
                         }
                         return;
                     }
 
-                    boardGame.invalidate();
-                    afterAiMove(aiPlaced);
+                    boardGame.animateDrop(aiPlaced, () -> afterAiMove(aiPlaced));
 
                 }, 3000);
             }
@@ -141,11 +131,9 @@ public class GameActivity extends AppCompatActivity implements GeminiModule.Cell
             public void onError(String msg) {
                 handler.postDelayed(() -> {
 
-                    // ✅ תיקון: להגדיר משתנה מקומי
                     Position aiPlaced = gameMoudle.aiMoveHardLocal();
                     if (aiPlaced != null) {
-                        boardGame.invalidate();
-                        afterAiMove(aiPlaced);
+                        boardGame.animateDrop(aiPlaced, () -> afterAiMove(aiPlaced));
                     }
 
                 }, 3000);

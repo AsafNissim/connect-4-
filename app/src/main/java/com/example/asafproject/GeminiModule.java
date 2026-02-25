@@ -23,7 +23,7 @@ public class GeminiModule {
     private static final String TAG = "GEMINI";
 
     // ⚠️ אל תעלה את זה לגיטהאב. עדיף לשים בקובץ מקומי/BuildConfig, אבל כרגע נשאיר פשוט.
-    private static final String API_KEY = "PUT_KEY_HERE";
+    private static final String API_KEY = "AIzaSyAfZCdrWoQkY-kJGCoh-IHzSchol8Q9M8k";
 
     // ✅ זה המודל שכבר ראינו שעונה אצלך HTTP 200
     private static final String MODEL = "gemini-2.5-flash";
@@ -64,9 +64,10 @@ public class GeminiModule {
             // ✅ פרומפט קצר כדי לא “לבזבז” טוקנים
             // ✅ מבקש תשובה בפורמט פשוט (col=3) אבל גם מאפשר JSON
             textPart.put("text",
-                    "YELLOW to move. Return ONLY one of:\n" +
-                            "col=<0-6>\n" +
-                            "or {\"col\":3}\n" +
+                    "You are CONNECT-4 engine playing YELLOW.\n" +
+                            "You MUST analyze at least 3 candidate columns and look ahead 4 plies (Y,R,Y,R).\n" +
+                            "If you can win now, do it. If you must block, do it.\n" +
+                            "Output ONLY: col=<0-6>\n" +
                             "Board:\n" + boardText
             );
 
